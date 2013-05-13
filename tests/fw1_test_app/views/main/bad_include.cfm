@@ -1,0 +1,1 @@
+<cfinclude template="bad_file.cfm" />
