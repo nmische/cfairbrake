@@ -28,7 +28,7 @@
   </cffunction>
 
 
-  <cffunction name="send" access="public" returntype="void" output="no">
+  <cffunction name="send" access="public" returntype="struct" output="no">
     <cfargument name="error" type="any" required="yes" hint="The error structure to notify Airbrake about." />
     <cfargument name="cgi" type="struct" required="no" hint="Any cgi variables to report." />    
     <cfargument name="params" type="struct" required="no" hint="Any request parameters to report." />
@@ -52,7 +52,7 @@
 
     <cfset notice_result = { status = http_result.statusCode, id = 0, url = "" } />
 
-    <cfif IsXML(local.http.filecontent)>
+    <cfif IsXML(http_result.filecontent)>
       <cfset http_result_xml = XmlParse(http_result.filecontent) />
       <cfif StructKeyExists(http_result_xml, "notice")>
         <cfset notice_result.id = http_result_xml.notice.id.XmlText>
