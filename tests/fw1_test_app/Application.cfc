@@ -1,17 +1,20 @@
 component extends="org.corfield.framework" {
 
 	this.name = "CFAirbrakeFW1TestApp";
-  this.datasource = "cfairbrake";
-  this.ormenabled = "true";
-  this.sessionmanagement = "true";
-  this.ormsettings = {
-    dbcreate = "dropcreate",
-    sqlscript = "/vagrant/wwwroot/cfairbrake/tests/sql/cfairbrake.sql",
-    cfclocation = "/vagrant/wwwroot/cfairbrake/tests/entities"
-  };
+	this.datasource = "cfairbrake";
+	this.ormenabled = "true";
+	this.sessionmanagement = "true";
+	this.ormsettings = {
+		dbcreate = "dropcreate",
+		sqlscript = "/vagrant/wwwroot/cfairbrake/tests/sql/cfairbrake.sql",
+		cfclocation = "/vagrant/wwwroot/cfairbrake/tests/entities"
+	};
 	
 	function setupApplication() {
-		application.cfairbrake = CreateObject("component","cfairbrake.cfairbrake").init(api_key="TESTKEY",app_version="0.1.0",environment_name="Testing",collect_error_details="true");
+		application.cfairbrake = CreateObject("component","cfairbrake.cfairbrake").init(api_key="TESTKEY",app_version="0.1.0",environment_name="Testing",hostname=getHostname(),collect_error_details="true");
+		if (!directoryExists("/vagrant/wwwroot/cfairbrake/tests/output")) {
+			directoryCreate("/vagrant/wwwroot/cfairbrake/tests/output");
+		}
 	}
 	
 	function setupRequest() {
@@ -26,56 +29,60 @@ component extends="org.corfield.framework" {
 	}
 
 	function onError(any exception, string event) {
-    var args = {};
-    var output = "";
-    args.error = StructKeyExists(arguments.exception,"cause") ? arguments.exception.cause : arguments.exception ;
-    args.cgi = cgi;
-    args.params = {};
-    args.include_schema = true;
-    if ( IsDefined('url')  and IsStruct(url) ) StructAppend(args.params,url);
-    if ( IsDefined('form') and IsStruct(form) ) StructAppend(args.params,form);
-    // collection session data    
-    if ( IsDefined('session') and IsStruct(session) ) {
-    	args.session = session; 
-    	// and log the user to airbrake.io's current-user
-    	if ( StructKeyExists(session,"userid") ) {
-    		args.user = {};
-    		args.user.id = session.userid;
-    		if ( StructKeyExists(session,"username") ) args.user.username = session.username;
-    		if ( StructKeyExists(session,"email") ) args.user.email = session.email;
-    	}
-    }
-    // map fw1 section/item to airbrake.io component/action
-    if ( StructKeyExists(request, "section") ) args.component = request.section;
-    if ( StructKeyExists(request, "item") ) args.action = request.item;
+	var args = {};
+	var output = "";
+	args.error = StructKeyExists(arguments.exception,"cause") ? arguments.exception.cause : arguments.exception ;
+	args.cgi = cgi;
+	args.params = {};
+	args.include_schema = true;
+	if ( IsDefined('url')  and IsStruct(url) ) StructAppend(args.params,url);
+	if ( IsDefined('form') and IsStruct(form) ) StructAppend(args.params,form);
+	// collection session data	
+	if ( IsDefined('session') and IsStruct(session) ) {
+		args.session = session; 
+		// and log the user to airbrake.io's current-user
+		if ( StructKeyExists(session,"userid") ) {
+			args.user = {};
+			args.user.id = session.userid;
+			if ( StructKeyExists(session,"username") ) args.user.username = session.username;
+			if ( StructKeyExists(session,"email") ) args.user.email = session.email;
+		}
+	}
+	// map fw1 section/item to airbrake.io component/action
+	if ( StructKeyExists(request, "section") ) args.component = request.section;
+	if ( StructKeyExists(request, "item") ) args.action = request.item;
 
-    output = application.cfairbrake.build_notice(argumentcollection=args);
-    FileWrite("/vagrant/wwwroot/cfairbrake/tests/output/output.xml",output);
+	if ( StructKeyExists(application,"cfairbrake")) {
 
-    super.onError( exception, event );
+	output = application.cfairbrake.build_notice(argumentcollection=args);
+	FileWrite("/vagrant/wwwroot/cfairbrake/tests/output/output.xml",output);
+
+	}
+
+	super.onError( exception, event );
 
   }
 
   function onMissingTemplate( string targetPage ) {
-    var args = {};
-    var output = "";
-    args.cgi = cgi;
-    args.params = {};
-    args.include_schema = true;
-    if ( IsDefined('url')  and IsStruct(url) ) StructAppend(args.params,url);
-    if ( IsDefined('form') and IsStruct(form) ) StructAppend(args.params,form);    
-    if ( IsDefined('session') and IsStruct(session) ) {
-    	args.session = session; 
-    	if ( StructKeyExists(session,"userid") ) {
-    		args.user = {};
-    		args.user.id = session.userid;
-    		if ( StructKeyExists(session,"username") ) args.user.username = session.username;
-    		if ( StructKeyExists(session,"email") ) args.user.email = session.email;
-    	}
-    }
+	var args = {};
+	var output = "";
+	args.cgi = cgi;
+	args.params = {};
+	args.include_schema = true;
+	if ( IsDefined('url')  and IsStruct(url) ) StructAppend(args.params,url);
+	if ( IsDefined('form') and IsStruct(form) ) StructAppend(args.params,form);	
+	if ( IsDefined('session') and IsStruct(session) ) {
+		args.session = session; 
+		if ( StructKeyExists(session,"userid") ) {
+			args.user = {};
+			args.user.id = session.userid;
+			if ( StructKeyExists(session,"username") ) args.user.username = session.username;
+			if ( StructKeyExists(session,"email") ) args.user.email = session.email;
+		}
+	}
 
-    output = application.cfairbrake.build_notice(argumentcollection=args);
-    FileWrite("/vagrant/wwwroot/cfairbrake/tests/output/output.xml",output);
+	output = application.cfairbrake.build_notice(argumentcollection=args);
+	FileWrite("/vagrant/wwwroot/cfairbrake/tests/output/output.xml",output);
   }
 	
 }

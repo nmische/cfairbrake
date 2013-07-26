@@ -19,6 +19,9 @@ component {
 
   function onApplicationStart() {
     application.cfairbrake = CreateObject("component","cfairbrake.cfairbrake").init(api_key="TESTKEY");
+    if (!directoryExists("/vagrant/wwwroot/cfairbrake/tests/output")) {
+        directoryCreate("/vagrant/wwwroot/cfairbrake/tests/output");
+    }
   }
 
   function onError( e ) {

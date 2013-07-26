@@ -5,6 +5,7 @@
   <cfset variables.app_version = "0.0.0" />
   <cfset variables.environment_name = "Unspecified" />
   <cfset variables.project_root = GetDirectoryFromPath(GetBaseTemplatePath()) />
+  <cfset variables.hostname = "" />
   <cfset variables.use_ssl = false />
   <cfset variables.collect_error_details = false />
   <cfset variables.log_root_cause = false />
@@ -15,6 +16,7 @@
     <cfargument name="app_version" type="string" required="no" default="0.0.0" hint="The application version to log to Airbrake." />
     <cfargument name="environment_name" type="string" required="no" default="Unspecified" hint="The application environment to log to Airbrake." />
     <cfargument name="project_root" type="string" required="no" default="#GetDirectoryFromPath(GetBaseTemplatePath())#" hint="The project root directory to log to Airbrake." />
+    <cfargument name="hostname" type="string" required="no" default="" hint="The serer hostname to log to Airbrake." />
     <cfargument name="use_ssl" type="string" required="no" default="false" hint="Use SSL when posting to Airbrake.io." />
     <cfargument name="collect_error_details" type="string" required="no" default="false" hint="Collect additional error details as CGI data." />
     <cfargument name="log_root_cause" type="string" required="no" default="false" hint="If the passed exception has a root cause defined log that instead of the passed exception." />
@@ -22,6 +24,7 @@
     <cfset variables.app_version = arguments.app_version />
     <cfset variables.environment_name = arguments.environment_name />
     <cfset variables.project_root = arguments.project_root />
+    <cfset variables.hostname = arguments.hostname />
     <cfset variables.use_ssl = arguments.use_ssl />
     <cfset variables.collect_error_details = arguments.collect_error_details />
     <cfreturn this />
@@ -141,6 +144,8 @@
           <project-root>#XmlFormat(variables.project_root)#</project-root>
           <environment-name>#XmlFormat(variables.environment_name)#</environment-name>
           <app-version>#XmlFormat(variables.app_version)#</app-version>
+          <cfif Len(variables.hostname)><hostname>#XmlFormat(variables.hostname)#</hostname>
+          </cfif>
         </server-environment>
         <cfif StructKeyExists(arguments,"user") and StructKeyExists(arguments.user,"id")>
         <current-user>
